@@ -9,9 +9,17 @@ void dmpDataReady()
 
 IMU::IMU(uint8_t interrupt_pin)
 {
-    interrupt_pin_ = interrupt_pin;
+    Serial.println(F("Initializing I2C devices..."));
     initialize();
-    dmpInitialize();
+    Serial.println(F("Testing device connections..."));
+    Serial.println(testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+    interrupt_pin_ = interrupt_pin;
+    pinMode(interrupt_pin_, INPUT);
+}
+
+bool IMU::start()
+{
+    devStatus = dmpInitialize();
     // Don't change these constants
     setXAccelOffset(3177);
     setYAccelOffset(1911);
@@ -19,6 +27,7 @@ IMU::IMU(uint8_t interrupt_pin)
     setXGyroOffset(3);
     setYGyroOffset(4);
     setZGyroOffset(-4);
+    Serial.print(devStatus);
     // make sure it worked (returns 0 if so)
     if (devStatus == 0)
     {
@@ -43,6 +52,7 @@ IMU::IMU(uint8_t interrupt_pin)
 
         // get expected DMP packet size for later comparison
         packetSize = dmpGetFIFOPacketSize();
+        return (true);
     }
     else
     {
@@ -53,12 +63,14 @@ IMU::IMU(uint8_t interrupt_pin)
         Serial.print(F("DMP Initialization failed (code "));
         Serial.print(devStatus);
         Serial.println(F(")"));
+        return (false);
     }
 }
 
-
 bool IMU::getData()
 {
+    if (!dmpReady)
+        return false;
     if (dmpGetCurrentFIFOPacket(fifoBuffer))
     {
         // display Euler angles in degrees

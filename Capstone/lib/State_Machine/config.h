@@ -3,6 +3,7 @@
 #include "Arduino.h"
 
 #define LED_PIN 4
+#define IMU_INT 2
 #define NUM_LEDS 1
 #define TRIG_PIN 13
 #define ECHO_PIN 12
@@ -30,7 +31,15 @@
 #define PURPLE 0x5E00FF // Dropoff
 #define WHITE 0xFFFFFF // Standby
 
-#define THRESHOLD 800
+#define THRESHOLD 700
+
+#define P_GAIN_TURN 0.2
+#define I_GAIN_TURN 0.1
+#define D_GAIN_TURN 0.005
+
+#define P_GAIN_LINE 0.01
+#define I_GAIN_LINE 0.005
+#define D_GAIN_LINE 0.0005
 
 // turn pid
 const double gains_turn[3] = {0.2, 0.1, 0.005};

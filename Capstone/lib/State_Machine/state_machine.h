@@ -4,7 +4,7 @@
 #include "Motor_driver.h"
 #include "ultrasonic.h"
 #include "ir_sensor.h"
-#include "MPU6050.h"
+#include "imu.h"
 #include "PID_v1.h"
 #include "FastLED.h"
 #include "config.h"
@@ -33,20 +33,33 @@ class StateMachine
 {
 public:
     StateMachine();
-    void state_machine_update(data_packet data, States state, States last_state = STANDBY);
-    data_packet getData();
-    void printData();
-    float *lineFollowing();
-    bool turn(double angle, int timeout=10000);
+    States update(States state, States last_state = STANDBY);
+    void getInstructions();
+    data_packet getData(bool verbose = false);
+    bool detectLine();
+    bool detectPickupIntersection();
+    bool detectDropoffInttersection();
+    void lineFollowing(double speed);
+    bool turn(double angle, int timeout = 10000);
+    bool assignMotor(Motor_driver *motor_driver);
+    bool assignIMU(IMU *IMU);
+    bool assignIR(IR_sensor *IR_sensor);
+    bool assignUltrasonic(Ultrasonic *ultrasonic_sensor);
 
 private:
+    Motor_driver *motor;
+    IMU *imu;
+    IR_sensor *ir_sensor;
+    Ultrasonic *ultrasonic;
     data_packet last_data;
-    int threshold;
+
     uint8_t intersection_counter = 0;
+    uint8_t intersection_destination;
+    bool use_ultrasonic = false;
     double setpoint_line, input_line, output_line;
     double setpoint_turn, input_turn, output_turn;
     PID pid_line = PID(&input_line, &output_line, &setpoint_line, gains_line[0], gains_line[1], gains_line[2], DIRECT);
-    PID pid_turn = PID(&input_turn, &output_turn, &setpoint_turn, gains_turn[0], gains_turn[1], gains_turn[2], DIRECT);
+    PID pid_turn = PID(&input_turn, &output_turn, &setpoint_turn, P_GAIN_TURN, I_GAIN_TURN, D_GAIN_TURN, DIRECT);
     CRGB leds[NUM_LEDS];
     data_packet data;
 };

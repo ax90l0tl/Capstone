@@ -3,12 +3,15 @@
 
 #include "MPU6050_6Axis_MotionApps20.h"
 
-class IMU : MPU6050
+class IMU : public MPU6050
 {
 public:
     IMU(uint8_t interrupt_pin);
+    bool start();
     bool getData();
     void printData();
+    float euler[3];      // [psi, theta, phi]    Euler angle container
+    float ypr[3];        // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
 private:
     uint8_t interrupt_pin_;
@@ -24,8 +27,7 @@ private:
     VectorInt16 aaReal;  // [x, y, z]            gravity-free accel sensor measurements
     VectorInt16 aaWorld; // [x, y, z]            world-frame accel sensor measurements
     VectorFloat gravity; // [x, y, z]            gravity vector
-    float euler[3];      // [psi, theta, phi]    Euler angle container
-    float ypr[3];        // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+
 };
 
 #endif
