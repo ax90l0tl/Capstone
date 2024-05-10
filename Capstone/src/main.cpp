@@ -50,7 +50,8 @@ void setup()
 
 void loop()
 {
-  state_machine->getData(false);
-  state = state_machine->update(state);
-  Serial.println(state);
+  // state_machine->getData(true, true, true, false);
+  // state = state_machine->update(state);
+  state_machine->lineFollowing(0.3);
+  // Serial.println(state);
 }

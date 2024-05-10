@@ -37,14 +37,12 @@
 #define I_GAIN_TURN 0.1
 #define D_GAIN_TURN 0.005
 
-#define P_GAIN_LINE 0.01
-#define I_GAIN_LINE 0.005
-#define D_GAIN_LINE 0.0005
+// #define P_GAIN_LINE 1.5
+// #define I_GAIN_LINE 0.00
+// #define D_GAIN_LINE 1.0
 
-// turn pid
-const double gains_turn[3] = {0.2, 0.1, 0.005};
-
-// line pid
-const double gains_line[3] = {0.01, 0.005, 0.0005};
+#define P_GAIN_LINE 10.0
+#define I_GAIN_LINE 0.00
+#define D_GAIN_LINE 6.67
 
 #endif

@@ -13,12 +13,13 @@ StateMachine::StateMachine()
 
 States StateMachine::update(States state, States last_state)
 {
+    data = getData(false, true, true, true);
     switch (state)
     {
     case LINE_FOLLOWING:
         leds[0].setColorCode(RED);
         FastLED.show();
-        // // See Intersection
+        // See Intersection
         // if (data.ir_array[0] && data.ir_array[1] && data.ir_array[3] > THRESHOLD)
         // {
         //     update(INTERSECTION_PICKUP, state);
@@ -68,7 +69,6 @@ States StateMachine::update(States state, States last_state)
     case GRABBING:
         leds[0].setColorCode(PINK);
         FastLED.show();
-        use_ultrasonic = true;
         // update(TURN, state);
         break;
     case INTERSECTION_DROPOFF:
@@ -80,13 +80,13 @@ States StateMachine::update(States state, States last_state)
     case DROPOFF:
         leds[0].setColorCode(PURPLE);
         FastLED.show();
-        use_ultrasonic = true;
         // update(FINISH, state);
         break;
     default:
         leds[0].setColorCode(WHITE);
         FastLED.show();
-        if(detectLine()){
+        if (detectLine())
+        {
             state = update(LINE_FOLLOWING);
         }
         break;
@@ -99,29 +99,41 @@ void StateMachine::getInstructions()
     intersection_destination = 3;
 }
 
-data_packet StateMachine::getData(bool verbose)
+data_packet StateMachine::getData(bool verbose, bool use_ir, bool use_imu, bool use_ultrasonic)
 {
-    for (uint8_t i = 0; i < 9; i++)
+    if (use_ir)
     {
-        data.ir_array[i] = ir_sensor[i].getData();
+        for (uint8_t i = 0; i < 9; i++)
+        {
+            data.ir_array[i] = ir_sensor[i].getData();
+            if (verbose)
+            {
+                Serial.print(data.ir_array[i]);
+                Serial.print(",");
+            }
+        }
         if (verbose)
         {
-            Serial.print(data.ir_array[i]);
-            Serial.print(",");
+            Serial.println();
         }
     }
-    Serial.println();
-    imu->getData();
-    for (uint8_t i = 0; i < 3; i++)
+    if (use_imu)
     {
-        data.rotation[i] = imu->ypr[i];
+        imu->getData();
+        for (uint8_t i = 0; i < 3; i++)
+        {
+            data.rotation[i] = imu->ypr[i];
+            if (verbose)
+            {
+                Serial.print(data.rotation[i]);
+                Serial.print(",");
+            }
+        }
         if (verbose)
         {
-            Serial.print(data.rotation[i]);
-            Serial.print(",");
+            Serial.println();
         }
     }
-    Serial.println();
     if (use_ultrasonic)
     {
         data.distance = ultrasonic->getMeasurement();
@@ -160,22 +172,19 @@ bool StateMachine::detectDropoffInttersection()
 
 void StateMachine::lineFollowing(double speed)
 {
-    while (true)
+    // while (true)
+    // {
+    data = getData(false, true, false, false);
+    if (data.ir_array[3] > THRESHOLD || data.ir_array[4] > THRESHOLD)
     {
-        uint16_t ir_data[9] = {0};
-        for (uint8_t i = 0; i < 9; i++)
-        {
-            ir_data[i] = ir_sensor[i].getData();
-        }
-        // if (ir_data[3] > THRESHOLD || ir_data[4 > THRESHOLD])
-        // {
-        //     break;
-        // }
-        input_line = ir_data[0] - ir_data[2];
-        setpoint_line = 0;
-        pid_line.Compute();
-        motor->twist(speed, output_line);
+        // break;
     }
+    input_line = data.ir_array[0] - data.ir_array[2];
+    setpoint_line = 0;
+    pid_line.SetTunings(speed*P_GAIN_LINE, speed*I_GAIN_LINE, speed*D_GAIN_LINE);
+    pid_line.Compute();
+    motor->twist(speed, output_line);
+    // }
 }
 
 bool StateMachine::turn(double angle, int timeout)

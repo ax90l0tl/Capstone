@@ -35,7 +35,7 @@ public:
     StateMachine();
     States update(States state, States last_state = STANDBY);
     void getInstructions();
-    data_packet getData(bool verbose = false);
+    data_packet getData(bool verbose = false, bool use_ir = false, bool use_imu = false, bool use_ultrasonic = false);
     bool detectLine();
     bool detectPickupIntersection();
     bool detectDropoffInttersection();
@@ -55,10 +55,9 @@ private:
 
     uint8_t intersection_counter = 0;
     uint8_t intersection_destination;
-    bool use_ultrasonic = false;
     double setpoint_line, input_line, output_line;
     double setpoint_turn, input_turn, output_turn;
-    PID pid_line = PID(&input_line, &output_line, &setpoint_line, gains_line[0], gains_line[1], gains_line[2], DIRECT);
+    PID pid_line = PID(&input_line, &output_line, &setpoint_line, P_GAIN_LINE, I_GAIN_LINE, D_GAIN_LINE, DIRECT);
     PID pid_turn = PID(&input_turn, &output_turn, &setpoint_turn, P_GAIN_TURN, I_GAIN_TURN, D_GAIN_TURN, DIRECT);
     CRGB leds[NUM_LEDS];
     data_packet data;
