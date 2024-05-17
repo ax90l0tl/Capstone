@@ -8,6 +8,7 @@
 #include "PID_v1.h"
 #include "FastLED.h"
 #include "config.h"
+#include "Servo.h"
 
 struct data_packet
 {
@@ -33,25 +34,29 @@ class StateMachine
 {
 public:
     StateMachine();
-    States update(States state, States last_state = STANDBY);
+    States update(States state, States last_state);
+    States update(States last_state = STANDBY);
     void getInstructions();
     data_packet getData(bool verbose = false, bool use_ir = false, bool use_imu = false, bool use_ultrasonic = false);
     bool detectLine();
-    bool detectPickupIntersection();
-    bool detectDropoffInttersection();
+    bool detectLeft();
+    bool detectRight();
+    bool detectWall();
     void lineFollowing(double speed);
     bool turn(double angle, int timeout = 10000);
+    void grab();
     bool assignMotor(Motor_driver *motor_driver);
     bool assignIMU(IMU *IMU);
-    bool assignIR(IR_sensor *IR_sensor);
+    bool assignIR(IR_sensor *IR_sensor[NUM_IR]);
     bool assignUltrasonic(Ultrasonic *ultrasonic_sensor);
+    bool assignServo(Servo *servo[NUM_SERVO]);
 
 private:
     Motor_driver *motor;
     IMU *imu;
-    IR_sensor *ir_sensor;
+    IR_sensor *ir_sensor[NUM_IR];
     Ultrasonic *ultrasonic;
-    data_packet last_data;
+    Servo *servos[NUM_SERVO];
 
     uint8_t intersection_counter = 0;
     uint8_t intersection_destination;

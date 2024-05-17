@@ -8,9 +8,10 @@
 
 Motor_driver *Motors;
 Ultrasonic *ultrasonic;
-IR_sensor *ir_array[9] = {};
+IR_sensor *ir_array[NUM_IR] = {};
 IMU *imu;
 StateMachine *state_machine;
+Servo *servo[NUM_SERVO] = {};
 
 void (*resetFunc)(void) = 0; // declare reset function @ address 0
 States state = STANDBY;
@@ -27,7 +28,7 @@ void setup()
   delay(1000);
   imu = new IMU(IMU_INT);
   uint8_t ir_pins[9] = {IR_0, IR_1, IR_2, IR_3, IR_4, IR_5, IR_6, IR_7, IR_8};
-  for (uint8_t i = 0; i < 9; i++)
+  for (uint8_t i = 0; i < NUM_IR; i++)
   {
     ir_array[i] = new IR_sensor(ir_pins[i]);
   }
@@ -37,21 +38,29 @@ void setup()
     delay(1000);
     resetFunc();
   }
-  IR_sensor *ir_ptr = ir_array[0];
+  uint8_t servo_pins[3] = {SERVO_0, SERVO_1, SERVO_2};
+  for(uint8_t i = 0; i < NUM_SERVO; i++){
+    servo[i]->attach(servo_pins[i]);
+  }
   state_machine = new StateMachine();
   state_machine->assignMotor(Motors);
   state_machine->assignIMU(imu);
   state_machine->assignUltrasonic(ultrasonic);
-  state_machine->assignIR(ir_ptr);
-  pinMode(trig_pin_, OUTPUT);
-  pinMode(echo_pin_, INPUT);
-  digitalWrite(trig_pin_, LOW);
+  state_machine->assignIR(ir_array);
+  state_machine->assignServo(servo);
 }
 
 void loop()
 {
   // state_machine->getData(true, true, true, false);
-  // state = state_machine->update(state);
-  state_machine->lineFollowing(0.3);
+  state = state_machine->update(state);
+  // for (uint8_t i = 0; i < NUM_IR; i++)
+  // {
+  //   Serial.print(ir_array[i]->getData());
+  //   Serial.print(", ");
+  // }
+  // Serial.println();
+  // state_machine->grab();
+  // state_machine->lineFollowing(0.3);
   // Serial.println(state);
 }

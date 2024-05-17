@@ -12,6 +12,7 @@
 #define MOTOR_DIR_A 7
 #define MOTOR_DIR_B 8
 #define MOTOR_EN 3
+#define NUM_IR 9
 #define IR_0 0
 #define IR_1 1
 #define IR_2 2
@@ -21,6 +22,10 @@
 #define IR_6 11
 #define IR_7 12
 #define IR_8 13
+#define NUM_SERVO 3
+#define SERVO_0 10
+#define SERVO_1 11
+#define SERVO_2 19
 
 // State Color Codes
 #define RED 0xFF0000 //Line Following
@@ -31,7 +36,9 @@
 #define PURPLE 0x5E00FF // Dropoff
 #define WHITE 0xFFFFFF // Standby
 
-#define THRESHOLD 700
+#define THRESHOLD 800
+#define WALL_THRESHOLD 5.0
+#define SPEED 0.0
 
 #define P_GAIN_TURN 0.2
 #define I_GAIN_TURN 0.1

@@ -94,6 +94,44 @@ States StateMachine::update(States state, States last_state)
     return state;
 }
 
+States StateMachine::update(States last_state)
+{
+    data = getData(true, true, false, false);
+    if (detectLine())
+    {
+        if (detectLeft() && detectRight())
+        {
+            last_state = INTERSECTION_PICKUP;
+            leds[0].setColorCode(GREEN);
+            FastLED.show();
+        }
+        else if (detectLeft() || detectRight())
+        {
+            last_state = INTERSECTION_DROPOFF;
+            if (detectLeft())
+            {
+                leds[0].setColorCode(YELLOW);
+                FastLED.show();
+                // turn(90);
+            }
+            else if (detectRight())
+            {
+                leds[0].setColorCode(YELLOW);
+                FastLED.show();
+                // turn(-90);
+            }
+        }
+        else
+        {
+            last_state = LINE_FOLLOWING;
+            leds[0].setColorCode(RED);
+            FastLED.show();
+            lineFollowing(SPEED);
+        }
+    }
+    return last_state;
+}
+
 void StateMachine::getInstructions()
 {
     intersection_destination = 3;
@@ -103,9 +141,9 @@ data_packet StateMachine::getData(bool verbose, bool use_ir, bool use_imu, bool 
 {
     if (use_ir)
     {
-        for (uint8_t i = 0; i < 9; i++)
+        for (uint8_t i = 0; i < NUM_IR; i++)
         {
-            data.ir_array[i] = ir_sensor[i].getData();
+            data.ir_array[i] = ir_sensor[i]->IR_sensor::getData();
             if (verbose)
             {
                 Serial.print(data.ir_array[i]);
@@ -153,40 +191,47 @@ bool StateMachine::detectLine()
     }
     return false;
 }
-bool StateMachine::detectPickupIntersection()
+bool StateMachine::detectLeft()
 {
-    if (data.ir_array[3] > THRESHOLD && data.ir_array[4] > THRESHOLD)
+    if (data.ir_array[3] > THRESHOLD)
     {
-        return true;
+        return (true);
     }
-    return false;
+    return (false);
 }
-bool StateMachine::detectDropoffInttersection()
+bool StateMachine::detectRight()
 {
-    if (data.ir_array[3] < THRESHOLD && data.ir_array[4] > THRESHOLD)
+    if (data.ir_array[4] > THRESHOLD)
     {
-        return true;
+        return (true);
     }
-    return false;
+    return (false);
+}
+bool StateMachine::detectWall()
+{
+    if (data.distance < WALL_THRESHOLD)
+    {
+        return (true);
+    }
+    return (false);
 }
 
 void StateMachine::lineFollowing(double speed)
 {
-    // while (true)
-    // {
-    data = getData(false, true, false, false);
-    if (data.ir_array[3] > THRESHOLD || data.ir_array[4] > THRESHOLD)
+    while (true)
     {
-        // break;
+        data = getData(true, true, false, false);
+        if (data.ir_array[3] > THRESHOLD || data.ir_array[4] > THRESHOLD)
+        {
+            break;
+        }
+        input_line = data.ir_array[0] - data.ir_array[2];
+        setpoint_line = 0;
+        pid_line.SetTunings(speed * P_GAIN_LINE, speed * I_GAIN_LINE, speed * D_GAIN_LINE);
+        pid_line.Compute();
+        motor->twist(speed, output_line);
     }
-    input_line = data.ir_array[0] - data.ir_array[2];
-    setpoint_line = 0;
-    pid_line.SetTunings(speed*P_GAIN_LINE, speed*I_GAIN_LINE, speed*D_GAIN_LINE);
-    pid_line.Compute();
-    motor->twist(speed, output_line);
-    // }
 }
-
 bool StateMachine::turn(double angle, int timeout)
 {
     unsigned long current = millis();
@@ -209,6 +254,13 @@ bool StateMachine::turn(double angle, int timeout)
     }
     return true;
 }
+void StateMachine::grab()
+{
+    delay(1000);
+    servos[0]->write(30);
+    delay(1000);
+    servos[1]->write(0);
+}
 
 bool StateMachine::assignMotor(Motor_driver *motor_driver)
 {
@@ -228,13 +280,16 @@ bool StateMachine::assignIMU(IMU *IMU)
     imu = IMU;
     return true;
 }
-bool StateMachine::assignIR(IR_sensor *IR_sensor)
+bool StateMachine::assignIR(IR_sensor *IR_sensor[NUM_IR])
 {
     if (IR_sensor == nullptr)
     {
         return false;
     }
-    ir_sensor = IR_sensor;
+    for (uint8_t i = 0; i < NUM_IR; i++)
+    {
+        ir_sensor[i] = IR_sensor[i];
+    }
     return true;
 }
 bool StateMachine::assignUltrasonic(Ultrasonic *ultrasonic_sensor)
@@ -246,17 +301,28 @@ bool StateMachine::assignUltrasonic(Ultrasonic *ultrasonic_sensor)
     ultrasonic = ultrasonic_sensor;
     return true;
 }
+bool StateMachine::assignServo(Servo *servo[NUM_SERVO])
+{
+    if (servo == nullptr)
+    {
+        return false;
+    }
+    for (uint8_t i = 0; i < NUM_SERVO; i++)
+    {
+        servos[i] = servo[i];
+        servos[i]->write(0);
+    }
+    return true;
+}
 
 double angleWrap_360(double input)
 {
     return (input -= 360. * floor(input * (1. / 360.)));
 }
-
 double angleWrap_180(double input)
 {
     return (input -= ceil(input / 360. - 0.5) * 360.);
 }
-
 double angleWrap_pi(double input)
 {
     return (atan2(sin(input), cos(input)));
