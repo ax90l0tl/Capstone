@@ -31,10 +31,14 @@ void Motor_driver::run(float right, float left)
         float speed[2] = {right, left};
         for (uint8_t i = 0; i < 2; i++)
         {
-            if (speed[i] <= 0)
+            if (speed[i] < 0)
             {
                 digitalWrite(dir_pin_[i], LOW);
                 analogWrite(pwm_pin_[i], (abs(speed[i]) * 255));
+            }
+            else if(speed[i] == 0){
+                digitalWrite(dir_pin_[i], HIGH);
+                analogWrite(pwm_pin_[i], 0);
             }
             else
             {
@@ -48,5 +52,5 @@ void Motor_driver::twist(float speed, float spin)
 {
     speed = constrain(speed, -1.0, 1.0);
     spin = constrain(spin, -1.0, 1.0);
-    run((speed + spin)/2, (speed - spin)/ 2);
+    run((speed - spin)/2, (speed + spin)/ 2);
 }

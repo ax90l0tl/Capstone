@@ -52,15 +52,20 @@ void setup()
 
 void loop()
 {
-  // state_machine->getData(true, true, true, false);
-  state = state_machine->update(state);
-  // for (uint8_t i = 0; i < NUM_IR; i++)
-  // {
-  //   Serial.print(ir_array[i]->getData());
-  //   Serial.print(", ");
-  // }
-  // Serial.println();
+  state = state_machine->update(state, true);
+  // delay(10);
+  // state_machine->getData(verbose, true, true, true);
+  // state_machine->exit_intersection(1.0);
+  // state_machine->approach_wall(0.3);
+  // state_machine->leave_wall(0.3);
+  // data_packet data = state_machine->getData(true, false, true, false);
+  // float prev = data.rotation[0];
+  // float prev = 0;
+  // state_machine->turn(1.57, 1.0);
+  // delay(2000);
+  // Serial.print("prev" );
+  // Serial.println(prev);
+  // state_machine->turn(prev, 1.0);
   // state_machine->grab();
-  // state_machine->lineFollowing(0.3);
-  // Serial.println(state);
+  // state_machine->lineFollowing(0.5);
 }

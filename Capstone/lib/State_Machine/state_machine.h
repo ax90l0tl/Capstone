@@ -28,23 +28,32 @@ enum States
     INTERSECTION_DROPOFF = 5,
     DROPOFF = 6,
     FINISH = 7,
+    SEARCH = 8,
 };
 
 class StateMachine
 {
 public:
     StateMachine();
-    States update(States state, States last_state);
-    States update(States last_state = STANDBY);
+    States choose_action(States state, float speed, bool verbose = false);
+    States update(States last_state, bool verbose = false);
     void getInstructions();
     data_packet getData(bool verbose = false, bool use_ir = false, bool use_imu = false, bool use_ultrasonic = false);
+    
     bool detectLine();
     bool detectLeft();
     bool detectRight();
     bool detectWall();
-    void lineFollowing(double speed);
-    bool turn(double angle, int timeout = 10000);
-    void grab();
+
+    void lineFollowing(float speed, bool verbose = false, unsigned long timeout = 2000);
+    void lineFollowing_gen(float speed);
+    bool turn(double angle, double w, bool verbose = false, unsigned long timeout = 5000, float speed = 0);
+    void approach_wall(float speed, bool verbose = false);
+    void leave_wall(float speed, bool verbose = false);
+    void grab(bool verbose = false);
+    void exit_intersection(float speed, bool verbose = false);
+    bool search(float speed, bool verbose = false);
+
     bool assignMotor(Motor_driver *motor_driver);
     bool assignIMU(IMU *IMU);
     bool assignIR(IR_sensor *IR_sensor[NUM_IR]);
@@ -57,9 +66,13 @@ private:
     IR_sensor *ir_sensor[NUM_IR];
     Ultrasonic *ultrasonic;
     Servo *servos[NUM_SERVO];
-
+    uint8_t intersections[4] = {0, 1, 2, 3};
+    uint8_t T_counter = 0;
+    uint8_t L_counter = 0;
     uint8_t intersection_counter = 0;
-    uint8_t intersection_destination;
+    float prev_orientation = 0;
+
+
     double setpoint_line, input_line, output_line;
     double setpoint_turn, input_turn, output_turn;
     PID pid_line = PID(&input_line, &output_line, &setpoint_line, P_GAIN_LINE, I_GAIN_LINE, D_GAIN_LINE, DIRECT);

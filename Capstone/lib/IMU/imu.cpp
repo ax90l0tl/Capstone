@@ -77,6 +77,7 @@ bool IMU::getData()
         dmpGetQuaternion(&q, fifoBuffer);
         dmpGetGravity(&gravity, &q);
         dmpGetYawPitchRoll(ypr, &q, &gravity);
+        ypr[0] = -ypr[0];
         return true;
     }
     return false;
