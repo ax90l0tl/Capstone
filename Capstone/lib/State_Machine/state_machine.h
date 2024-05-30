@@ -44,8 +44,9 @@ public:
     bool detectLeft();
     bool detectRight();
     bool detectWall();
+    bool detectHill();
 
-    void lineFollowing(float speed, bool verbose = false, unsigned long timeout = 2000);
+    void lineFollowing(float speed, bool verbose = false, unsigned long timeout = 500);
     void lineFollowing_gen(float speed);
     bool turn(double angle, double w, bool verbose = false, unsigned long timeout = 5000, float speed = 0);
     void approach_wall(float speed, bool verbose = false);
@@ -53,6 +54,7 @@ public:
     void grab(bool verbose = false);
     void exit_intersection(float speed, bool verbose = false);
     bool search(float speed, bool verbose = false);
+    void find_intersection(float speed, bool verbose = false, unsigned long timeout = 1000);
 
     bool assignMotor(Motor_driver *motor_driver);
     bool assignIMU(IMU *IMU);
@@ -66,11 +68,14 @@ private:
     IR_sensor *ir_sensor[NUM_IR];
     Ultrasonic *ultrasonic;
     Servo *servos[NUM_SERVO];
-    uint8_t intersections[4] = {0, 1, 2, 3};
+    uint8_t intersections[4] = {0, 1, 5, 3};
     uint8_t T_counter = 0;
     uint8_t L_counter = 0;
     uint8_t intersection_counter = 0;
     float prev_orientation = 0;
+    bool climb = false;
+    bool picked_up = false;
+    bool dropped_off = false;
 
 
     double setpoint_line, input_line, output_line;
@@ -84,4 +89,6 @@ private:
 double angleWrap_360(double input);
 double angleWrap_180(double input);
 double angleWrap_pi(double input);
+double get_nearest_angle_multiple(double input);
+double get_nearest_angle(double input);
 #endif

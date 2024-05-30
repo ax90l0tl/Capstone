@@ -50,7 +50,10 @@ void Motor_driver::run(float right, float left)
 }
 void Motor_driver::twist(float speed, float spin)
 {
-    speed = constrain(speed, -1.0, 1.0);
-    spin = constrain(spin, -1.0, 1.0);
+    // if(abs(speed) == 1 && abs(spin) == 1.0){
+        // speed = 0.5;
+    // }
+    // speed = constrain(speed, -1.0, 1.0);
+    // spin = constrain(spin, -1.0, 1.0);
     run((speed - spin)/2, (speed + spin)/ 2);
 }

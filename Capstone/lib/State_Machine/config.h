@@ -31,15 +31,16 @@
 #define RED 0xFF0000 //Line Following
 #define BLUE 0x0000FF // Turn
 #define GREEN 0x00FF00 // Intersection Pickup
-#define PINK 0xFF00FF // Grabbing
+#define PPINK 0xFF00FF // Grabbing
 #define YELLOW 0xFFFF00 // Intersection Dropoff
 #define PURPLE 0x5E00FF // Dropoff
 #define WHITE 0xFFFFFF // Standby
 
-#define THRESHOLD 600
+#define THRESHOLD 800
 #define WALL_THRESHOLD_CLOSE 8.0
-#define WALL_THRESHOLD_FAR 30.0
+#define WALL_THRESHOLD_FAR 40.0
 #define WALL_THRESHOLD 4.0
+#define HILL_THRESHOLD 55.0
 
 /*
     INTERSECTION DEFINITION PICKUP
@@ -67,18 +68,18 @@
 */
 
 
-#define SPEED 0.5
+#define SPEED 0.4
 
-#define P_GAIN_TURN 5.0
-#define I_GAIN_TURN 1.0
-#define D_GAIN_TURN 2.5
+#define P_GAIN_TURN 10.0
+#define I_GAIN_TURN 4.0
+#define D_GAIN_TURN 1.0
 
 // #define P_GAIN_LINE 1.5
 // #define I_GAIN_LINE 0.00
 // #define D_GAIN_LINE 1.0
 
-#define P_GAIN_LINE 0.05
+#define P_GAIN_LINE 0.5
 #define I_GAIN_LINE 0.00
-#define D_GAIN_LINE 0.027
+#define D_GAIN_LINE 0.27
 
 #endif

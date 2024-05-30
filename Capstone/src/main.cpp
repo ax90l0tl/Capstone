@@ -39,7 +39,8 @@ void setup()
     resetFunc();
   }
   uint8_t servo_pins[3] = {SERVO_0, SERVO_1, SERVO_2};
-  for(uint8_t i = 0; i < NUM_SERVO; i++){
+  for (uint8_t i = 0; i < NUM_SERVO; i++)
+  {
     servo[i]->attach(servo_pins[i]);
   }
   state_machine = new StateMachine();
@@ -52,12 +53,24 @@ void setup()
 
 void loop()
 {
-  state = state_machine->update(state, true);
+  state = state_machine->update(state, false);
+  // state = state_machine->update(state, true);
+  // state_machine->lineFollowing(1.0, true);
   // delay(10);
-  // state_machine->getData(verbose, true, true, true);
-  // state_machine->exit_intersection(1.0);
+  // state_machine->getData(true, true, true, true);
+  // state_machine->getData(true, false, false, true);
+  // Serial.print(state_machine->detectWall());
+  // state_machine->turn(-M_PI_2, 1.0, false, 2000);
+  // delay(1000);
+  // state_machine->exit_intersection(1.0, false);
+  // delay(1000);
   // state_machine->approach_wall(0.3);
+  // delay(1000);
   // state_machine->leave_wall(0.3);
+  // delay(1000);
+  // state_machine->turn(0.0, 1.0, false, 2000);
+  // delay(1000);
+  // state_machine->exit_intersection(1.0, true);
   // data_packet data = state_machine->getData(true, false, true, false);
   // float prev = data.rotation[0];
   // float prev = 0;
