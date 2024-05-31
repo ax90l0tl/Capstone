@@ -49,7 +49,7 @@ public:
     void lineFollowing(float speed, bool verbose = false, unsigned long timeout = 500);
     void lineFollowing_gen(float speed);
     bool turn(double angle, double w, bool verbose = false, unsigned long timeout = 5000, float speed = 0);
-    void approach_wall(float speed, bool verbose = false);
+    void approach_wall(float speed, float threshold, bool verbose = false);
     void leave_wall(float speed, bool verbose = false);
     void grab(bool verbose = false);
     void exit_intersection(float speed, bool verbose = false);
@@ -74,7 +74,7 @@ private:
     uint8_t intersection_counter = 0;
     float prev_orientation = 0;
     bool climb = false;
-    bool picked_up = false;
+    bool picked_up = true;
     bool dropped_off = false;
 
 

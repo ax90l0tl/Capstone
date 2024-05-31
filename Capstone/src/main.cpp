@@ -53,7 +53,7 @@ void setup()
 
 void loop()
 {
-  state = state_machine->update(state, false);
+  // state = state_machine->update(state, false);
   // state = state_machine->update(state, true);
   // state_machine->lineFollowing(1.0, true);
   // delay(10);
@@ -66,7 +66,7 @@ void loop()
   // delay(1000);
   // state_machine->approach_wall(0.3);
   // delay(1000);
-  // state_machine->leave_wall(0.3);
+  state_machine->leave_wall(0.7);
   // delay(1000);
   // state_machine->turn(0.0, 1.0, false, 2000);
   // delay(1000);

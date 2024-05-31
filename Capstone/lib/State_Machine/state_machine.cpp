@@ -22,12 +22,11 @@ States StateMachine::choose_action(States state, float speed, bool verbose)
         lineFollowing(speed, verbose, 1000);
         break;
     case TURN:
-        verbose = false;
         leds[0].setColorCode(BLUE);
         FastLED.show();
+        data = getData(verbose, true, true, false);
         if (detectLeft() && detectRight())
         {
-            data = getData(verbose, false, true, false);
             leds[0].setColorCode(GREEN);
             FastLED.show();
             if (intersections[intersection_counter] % 2 == 0)
@@ -53,21 +52,33 @@ States StateMachine::choose_action(States state, float speed, bool verbose)
         exit_intersection(0.5);
         break;
     case INTERSECTION_PICKUP:
-        if(picked_up){
+        if (picked_up)
+        {
             break;
         }
+        Serial.print("T_counter ");
+        Serial.print(T_counter);
+        Serial.print(" intersection_counter ");
+        Serial.println(intersection_counter);
         prev_orientation = get_nearest_angle(data.rotation[0]);
-        if (T_counter != intersections[intersection_counter] / 2)
+        choose_action(TURN, 1.0);
+        if (T_counter != intersections[intersection_counter])
         {
             T_counter++;
+            Serial.println("BREAK");
+            Serial.print("T_counter ");
+            Serial.print(T_counter);
+            Serial.print(" intersection_counter ");
+            Serial.println(intersection_counter);
             // leave_wall(0.3);
             find_intersection(0.3, verbose, 1000);
             turn(prev_orientation, 1.0, verbose, 2000);
+            unsigned long current = millis();
+            lineFollowing(0.3, verbose, 500);
             // leave_wall(0.3);
             exit_intersection(1.0);
             break;
         }
-        choose_action(TURN, 1.0);
         data = getData(verbose, true, true, true);
         if (!detectWall())
         {
@@ -80,7 +91,7 @@ States StateMachine::choose_action(States state, float speed, bool verbose)
         leds[0].setColorCode(GREEN);
         FastLED.show();
         exit_intersection(SPEED);
-        approach_wall(0.3);
+        approach_wall(0.3, WALL_THRESHOLD_CLOSE);
         delay(1000);
         choose_action(GRABBING, 1.0);
         delay(1000);
@@ -92,11 +103,12 @@ States StateMachine::choose_action(States state, float speed, bool verbose)
         Serial.println(prev_orientation);
         turn(prev_orientation, 1.0, false, 3000);
         delay(1000);
-        exit_intersection(1.0);
+        find_intersection(0.5);
         delay(1000);
         intersection_counter++;
         T_counter++;
-        if (intersection_counter == 2){
+        if (intersection_counter == 2)
+        {
             picked_up = true;
         }
         break;
@@ -107,21 +119,33 @@ States StateMachine::choose_action(States state, float speed, bool verbose)
         break;
     case INTERSECTION_DROPOFF:
         prev_orientation = get_nearest_angle(data.rotation[0]);
-        if(!picked_up){
-            break;
-        }
         choose_action(TURN, 1.0);
         data = getData(verbose, true, true, true);
-        if (!detectWall() || dropped_off)
+        if (!detectWall())
         {
+            break;
+        }
+        if (!picked_up)
+        {
+            turn(prev_orientation, 1.0, verbose, 2000);
+            break;
+        }
+        if (dropped_off)
+        {
+            if (detectWall())
+            {
+                leave_wall(0.5);
+            }
+            turn(prev_orientation, 1.0, verbose, 2000);
             break;
         }
         if (L_counter != intersections[3])
         {
             L_counter++;
-            find_intersection(0.3, verbose, 1000);
-            // leave_wall(0.3);
+            // find_intersection(0.5, verbose, 1000);
+            leave_wall(0.5);
             turn(prev_orientation, 1.0, verbose, 2000);
+            lineFollowing(0.3, verbose, 500);
             // leave_wall(0.3);
             exit_intersection(1.0);
             break;
@@ -131,14 +155,14 @@ States StateMachine::choose_action(States state, float speed, bool verbose)
             leds[0].setColorCode(YELLOW);
             FastLED.show();
             exit_intersection(speed);
-            approach_wall(0.3);
+            approach_wall(0.3, WALL_THRESHOLD_DROPOFF);
             delay(1000);
             choose_action(DROPOFF, 1.0);
             delay(1000);
             leds[0].setColorCode(YELLOW);
             FastLED.show();
             delay(1000);
-            leave_wall(0.3);
+            leave_wall(0.5);
             delay(1000);
             Serial.print("turning to prev: ");
             Serial.println(prev_orientation);
@@ -170,7 +194,6 @@ States StateMachine::choose_action(States state, float speed, bool verbose)
 
 States StateMachine::update(States last_state, bool verbose)
 {
-    delay(100);
     data = getData(true, true, true, true);
     float speed = SPEED;
     if (detectLine())
@@ -193,7 +216,7 @@ States StateMachine::update(States last_state, bool verbose)
             {
                 speed = 1.0;
             }
-            if(picked_up && abs(get_nearest_angle(data.rotation[0])) == M_PI_2 && !dropped_off)
+            if (picked_up && abs(get_nearest_angle(data.rotation[0])) == M_PI && !dropped_off)
             {
                 if (climb == true)
                 {
@@ -356,6 +379,8 @@ void StateMachine::lineFollowing(float speed, bool verbose, unsigned long timeou
         lineFollowing_gen(speed);
     }
     motor->twist(0.0, 0.0);
+    // data = getData(verbose, true, true, false);
+    // turn(get_nearest_angle(data.rotation[0]), 1.0, verbose, 2000);
 }
 void StateMachine::lineFollowing_gen(float speed)
 {
@@ -366,8 +391,8 @@ void StateMachine::lineFollowing_gen(float speed)
     {
         output_line = -output_line;
     }
-    // Serial.println(speed);
-    // Serial.println(output_line);
+    Serial.println(speed);
+    Serial.println(output_line);
     motor->twist(speed, output_line);
 }
 bool StateMachine::turn(double angle, double w, bool verbose, unsigned long timeout, float speed)
@@ -395,7 +420,7 @@ bool StateMachine::turn(double angle, double w, bool verbose, unsigned long time
     }
     return true;
 }
-void StateMachine::approach_wall(float speed, bool verbose)
+void StateMachine::approach_wall(float speed, float threshold, bool verbose)
 {
     pid_line.SetTunings(speed * P_GAIN_LINE, speed * I_GAIN_LINE, speed * D_GAIN_LINE);
     data = getData(verbose, false, false, true);
